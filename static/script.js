@@ -160,7 +160,7 @@ function listenForGameUpdates() {
             }
             document.getElementById('result').textContent = result;
             disableChoiceButtons();
-            document.getElementById('waiting-message').style.display = 'none'; // Hide waiting message completely
+            document.getElementById('waiting-message').style.display = 'none'; // Ensure waiting message is hidden
             document.getElementById('choices').style.display = 'none'; // Optionally hide choices
         } else if (game.status === 'playing') {
             const playerChoice = game[`${currentPlayer}_choice`];
@@ -169,12 +169,8 @@ function listenForGameUpdates() {
                 document.getElementById('waiting-message').style.display = 'none'; // Hide waiting message if no choice
             } else {
                 disableChoiceButtons();
-                // Only show the waiting message if the game is not finished and the player has made their choice
-                if (game.player1_score < 3 && game.player2_score < 3) {
-                    document.getElementById('waiting-message').style.display = 'block'; // Show waiting message if choice made
-                } else {
-                    document.getElementById('waiting-message').style.display = 'none'; // Ensure it's hidden if game is over
-                }
+                // Show waiting message only if the game is still ongoing
+                document.getElementById('waiting-message').style.display = (game.player1_score < 3 && game.player2_score < 3) ? 'block' : 'none';
             }
             document.getElementById('result').textContent = '';
         }
