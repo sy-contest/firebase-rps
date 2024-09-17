@@ -107,7 +107,7 @@ def make_choice():
                 app.logger.info(f"Updating {round_winner} score to {new_score}")
                 game_ref.child(f'{round_winner}_score').set(new_score)
             
-            if game.get(f'{round_winner}_score', 0) >= 3:
+            if game.get(f'{round_winner}_score', 0) >= 2:
                 app.logger.info(f"Game finished, winner: {round_winner}")
                 game_ref.update({
                     'status': 'finished',
