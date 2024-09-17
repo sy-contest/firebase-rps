@@ -34,9 +34,10 @@ def create_game():
             'player2_score': 0,
             'status': 'waiting'
         })
+        app.logger.info(f"Created game: {game_id}")
         return jsonify({'success': True, 'game_id': game_id})
     except Exception as e:
-        app.logger.error(f"Error in create_game: {str(e)}")
+        app.logger.error(f"Error in create_game: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'message': 'An error occurred while creating the game'}), 500
 
 @app.route('/join_game', methods=['POST'])
@@ -82,29 +83,31 @@ def make_choice():
         if not game:
             raise ValueError(f"Game with ID {game_id} not found")
         
+        app.logger.info(f"Current game state: {game}")
+        
         # Check if it's the player's turn
-        if player == 'player1' and game['player1_choice'] is not None:
+        if player == 'player1' and game.get('player1_choice') is not None:
             raise ValueError("Player 1 has already made a choice")
-        if player == 'player2' and game['player2_choice'] is not None:
+        if player == 'player2' and game.get('player2_choice') is not None:
             raise ValueError("Player 2 has already made a choice")
         
         game_ref.child(f'{player}_choice').set(choice)
         
         app.logger.info(f"Fetching updated game data")
         game = game_ref.get()
-        app.logger.info(f"Game data: {game}")
+        app.logger.info(f"Updated game data: {game}")
         
-        if game['player1_choice'] and game['player2_choice']:
+        if game.get('player1_choice') and game.get('player2_choice'):
             app.logger.info("Both players have made their choices")
             round_winner = determine_winner(game['player1_choice'], game['player2_choice'])
             app.logger.info(f"Round winner: {round_winner}")
             
             if round_winner != 'tie':
-                new_score = game[f'{round_winner}_score'] + 1
+                new_score = game.get(f'{round_winner}_score', 0) + 1
                 app.logger.info(f"Updating {round_winner} score to {new_score}")
                 game_ref.child(f'{round_winner}_score').set(new_score)
             
-            if game[f'{round_winner}_score'] >= 3:
+            if game.get(f'{round_winner}_score', 0) >= 3:
                 app.logger.info(f"Game finished, winner: {round_winner}")
                 game_ref.update({
                     'status': 'finished',
