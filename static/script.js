@@ -135,9 +135,11 @@ function listenForGameUpdates() {
         if (game.status === 'finished') {
             let result = '';
             if (game.winner === 'player1') {
-                result = game.player1 === currentPlayer ? 'You win the game!' : 'You lose the game!';
+                result = currentPlayer === 'player1' ? 'You win the game!' : 'You lose the game!';
             } else if (game.winner === 'player2') {
-                result = game.player2 === currentPlayer ? 'You win the game!' : 'You lose the game!';
+                result = currentPlayer === 'player2' ? 'You win the game!' : 'You lose the game!';
+            } else {
+                result = 'The game ended in a tie!';
             }
             document.getElementById('result').textContent = result;
             document.querySelectorAll('.choice').forEach(button => {
