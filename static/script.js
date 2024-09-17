@@ -95,13 +95,25 @@ function makeChoice(choice) {
         },
         body: JSON.stringify({ game_id: currentGameId, player: currentPlayer, choice: choice }),
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             document.querySelectorAll('.choice').forEach(button => {
                 button.disabled = true;
             });
+        } else {
+            console.error('Error making choice:', data.message);
+            alert('Error making choice: ' + data.message);
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while making a choice');
     });
 }
 

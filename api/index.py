@@ -42,28 +42,22 @@ def create_game():
 @app.route('/join_game', methods=['POST'])
 def join_game():
     try:
-        app.logger.info(f"Received join_game request: {request.json}")
         game_id = request.json['game_id']
         player_name = request.json['player_name']
-        app.logger.info(f"Attempting to join game {game_id} with player {player_name}")
         
         game_ref = db.reference(f'games/{game_id}')
         game = game_ref.get()
-        app.logger.info(f"Retrieved game data: {game}")
         
         if not game:
-            app.logger.warning(f"Game {game_id} not found")
             return jsonify({'success': False, 'message': 'Game not found'}), 404
         
         if game['status'] != 'waiting':
-            app.logger.warning(f"Game {game_id} is already full")
             return jsonify({'success': False, 'message': 'Game is already full'}), 400
         
         game_ref.update({
             'player2': player_name,
             'status': 'playing'
         })
-        app.logger.info(f"Successfully joined game {game_id}")
         return jsonify({'success': True})
     except Exception as e:
         app.logger.error(f"Error in join_game: {str(e)}", exc_info=True)
@@ -71,31 +65,35 @@ def join_game():
 
 @app.route('/make_choice', methods=['POST'])
 def make_choice():
-    game_id = request.json['game_id']
-    player = request.json['player']
-    choice = request.json['choice']
-    
-    game_ref = db.reference(f'games/{game_id}')
-    game_ref.child(f'{player}_choice').set(choice)
-    
-    game = game_ref.get()
-    if game['player1_choice'] and game['player2_choice']:
-        round_winner = determine_winner(game['player1_choice'], game['player2_choice'])
-        if round_winner != 'tie':
-            game_ref.child(f'{round_winner}_score').set(game[f'{round_winner}_score'] + 1)
+    try:
+        game_id = request.json['game_id']
+        player = request.json['player']
+        choice = request.json['choice']
         
-        if game[f'{round_winner}_score'] >= 2:
-            game_ref.update({
-                'status': 'finished',
-                'winner': round_winner
-            })
-        else:
-            game_ref.update({
-                'player1_choice': None,
-                'player2_choice': None
-            })
-    
-    return jsonify({'success': True})
+        game_ref = db.reference(f'games/{game_id}')
+        game_ref.child(f'{player}_choice').set(choice)
+        
+        game = game_ref.get()
+        if game['player1_choice'] and game['player2_choice']:
+            round_winner = determine_winner(game['player1_choice'], game['player2_choice'])
+            if round_winner != 'tie':
+                game_ref.child(f'{round_winner}_score').set(game[f'{round_winner}_score'] + 1)
+            
+            if game[f'{round_winner}_score'] >= 3:
+                game_ref.update({
+                    'status': 'finished',
+                    'winner': round_winner
+                })
+            else:
+                game_ref.update({
+                    'player1_choice': None,
+                    'player2_choice': None
+                })
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        app.logger.error(f"Error in make_choice: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'message': 'An error occurred while making a choice'}), 500
 
 def determine_winner(choice1, choice2):
     if choice1 == choice2:
