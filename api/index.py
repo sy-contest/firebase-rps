@@ -84,7 +84,7 @@ def make_choice():
         if round_winner != 'tie':
             game_ref.child(f'{round_winner}_score').set(game[f'{round_winner}_score'] + 1)
         
-        if game[f'{round_winner}_score'] >= 3:
+        if game[f'{round_winner}_score'] >= 2:
             game_ref.update({
                 'status': 'finished',
                 'winner': round_winner
