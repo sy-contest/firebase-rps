@@ -169,7 +169,12 @@ function listenForGameUpdates() {
                 document.getElementById('waiting-message').style.display = 'none'; // Hide waiting message if no choice
             } else {
                 disableChoiceButtons();
-                document.getElementById('waiting-message').style.display = 'block'; // Show waiting message if choice made
+                // Only show the waiting message if the game is not finished and the player has made their choice
+                if (game.player1_score < 3 && game.player2_score < 3) {
+                    document.getElementById('waiting-message').style.display = 'block'; // Show waiting message if choice made
+                } else {
+                    document.getElementById('waiting-message').style.display = 'none'; // Ensure it's hidden if game is over
+                }
             }
             document.getElementById('result').textContent = '';
         }
