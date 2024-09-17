@@ -1,7 +1,13 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/*.py", "use": "@vercel/python" },
+    {
+      "src": "api/*.py",
+      "use": "@vercel/python",
+      "config": {
+        "buildCommand": "echo $FIREBASE_KEY_FILE > firebase-key.json"
+      }
+    },
     { "src": "static/**", "use": "@vercel/static" }
   ],
   "routes": [
