@@ -1,22 +1,25 @@
+let database;
+let currentGameId = null;
+let currentPlayer = null;
+
 // Fetch Firebase config from server
 fetch('/config')
     .then(response => response.json())
     .then(firebaseConfig => {
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        // Rest of your code...
+        database = firebase.database();
+        initializeEventListeners();
     })
     .catch(error => console.error('Error loading Firebase config:', error));
 
-let currentGameId = null;
-let currentPlayer = null;
+function initializeEventListeners() {
+    document.getElementById('create-game').addEventListener('click', createGame);
+    document.getElementById('join-game').addEventListener('click', joinGame);
 
-document.getElementById('create-game').addEventListener('click', createGame);
-document.getElementById('join-game').addEventListener('click', joinGame);
-
-document.querySelectorAll('.choice').forEach(button => {
-    button.addEventListener('click', () => makeChoice(button.dataset.choice));
-});
+    document.querySelectorAll('.choice').forEach(button => {
+        button.addEventListener('click', () => makeChoice(button.dataset.choice));
+    });
+}
 
 function createGame() {
     const playerName = document.getElementById('player-name').value;
@@ -102,6 +105,10 @@ function makeChoice(choice) {
 }
 
 function listenForGameUpdates() {
+    if (!database) {
+        console.error('Firebase database not initialized');
+        return;
+    }
     const gameRef = database.ref(`games/${currentGameId}`);
     gameRef.on('value', (snapshot) => {
         const game = snapshot.val();
