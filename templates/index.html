@@ -4,27 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rock Paper Scissors</title>
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <h1>Rock Paper Scissors</h1>
-    <div id="login-form">
-        <input type="text" id="username" placeholder="Enter your username">
-        <input type="text" id="game-id" placeholder="Enter game ID">
-        <button id="login-button">Login</button>
-    </div>
-    <div id="game-area" style="display: none;">
-        <h2>Game ID: <span id="current-game-id"></span></h2>
-        <h3>Players:</h3>
-        <ul>
-            <li>Player 1: <span id="player1-name"></span></li>
-            <li>Player 2: <span id="player2-name"></span></li>
-        </ul>
-        <div id="choices">
-            <button class="choice" data-choice="rock">Rock</button>
-            <button class="choice" data-choice="paper">Paper</button>
-            <button class="choice" data-choice="scissors">Scissors</button>
+    <div class="container">
+        <h1>Rock Paper Scissors</h1>
+        <div id="login-form" class="form-grid">
+            <input type="text" id="username" placeholder="Enter your username">
+            <input type="text" id="game-id" placeholder="Enter game ID">
+            <button id="login-button">Login</button>
         </div>
-        <div id="result"></div>
+        <div id="game-area" class="game-grid" style="display: none;">
+            <h2>Game ID: <span id="current-game-id"></span></h2>
+            <div class="players-grid">
+                <h3>Players:</h3>
+                <ul>
+                    <li>Player 1: <span id="player1-name"></span></li>
+                    <li>Player 2: <span id="player2-name"></span></li>
+                </ul>
+            </div>
+            <div id="choices" class="choices-grid">
+                <button class="choice" data-choice="rock">Rock</button>
+                <button class="choice" data-choice="paper">Paper</button>
+                <button class="choice" data-choice="scissors">Scissors</button>
+            </div>
+            <div id="result" class="result-grid"></div>
+        </div>
     </div>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
