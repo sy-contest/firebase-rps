@@ -37,13 +37,21 @@ function createGame() {
     })
     .then(response => response.json())
     .then(data => {
-        currentGameId = data.game_id;
-        currentPlayer = 'player1';
-        document.getElementById('current-game-id').textContent = currentGameId;
-        document.getElementById('player1-name').textContent = playerName;
-        document.getElementById('game-setup').style.display = 'none';
-        document.getElementById('game-area').style.display = 'block';
-        listenForGameUpdates();
+        if (data.success) {
+            currentGameId = data.game_id;
+            currentPlayer = 'player1';
+            document.getElementById('current-game-id').textContent = currentGameId;
+            document.getElementById('player1-name').textContent = playerName;
+            document.getElementById('game-setup').style.display = 'none';
+            document.getElementById('game-area').style.display = 'block';
+            listenForGameUpdates();
+        } else {
+            alert(data.message || 'Failed to create game');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while creating the game');
     });
 }
 

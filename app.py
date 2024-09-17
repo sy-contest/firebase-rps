@@ -20,31 +20,49 @@ def index():
 
 @app.route('/create_game', methods=['POST'])
 def create_game():
-    game_id = db.reference('games').push().key
-    db.reference(f'games/{game_id}').set({
-        'player1': request.json['player_name'],
-        'player2': None,
-        'player1_choice': None,
-        'player2_choice': None,
-        'status': 'waiting'
-    })
-    return jsonify({'game_id': game_id})
+    try:
+        game_id = db.reference('games').push().key
+        db.reference(f'games/{game_id}').set({
+            'player1': request.json['player_name'],
+            'player2': None,
+            'player1_choice': None,
+            'player2_choice': None,
+            'status': 'waiting'
+        })
+        return jsonify({'success': True, 'game_id': game_id})
+    except Exception as e:
+        app.logger.error(f"Error in create_game: {str(e)}")
+        return jsonify({'success': False, 'message': 'An error occurred while creating the game'}), 500
 
 @app.route('/join_game', methods=['POST'])
 def join_game():
-    game_id = request.json['game_id']
-    player_name = request.json['player_name']
-    game_ref = db.reference(f'games/{game_id}')
-    game = game_ref.get()
-    
-    if game and game['status'] == 'waiting':
+    try:
+        app.logger.info(f"Received join_game request: {request.json}")
+        game_id = request.json['game_id']
+        player_name = request.json['player_name']
+        app.logger.info(f"Attempting to join game {game_id} with player {player_name}")
+        
+        game_ref = db.reference(f'games/{game_id}')
+        game = game_ref.get()
+        app.logger.info(f"Retrieved game data: {game}")
+        
+        if not game:
+            app.logger.warning(f"Game {game_id} not found")
+            return jsonify({'success': False, 'message': 'Game not found'}), 404
+        
+        if game['status'] != 'waiting':
+            app.logger.warning(f"Game {game_id} is already full")
+            return jsonify({'success': False, 'message': 'Game is already full'}), 400
+        
         game_ref.update({
             'player2': player_name,
             'status': 'playing'
         })
+        app.logger.info(f"Successfully joined game {game_id}")
         return jsonify({'success': True})
-    else:
-        return jsonify({'success': False, 'message': 'Game not found or already full'})
+    except Exception as e:
+        app.logger.error(f"Error in join_game: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'message': 'An error occurred while joining the game'}), 500
 
 @app.route('/make_choice', methods=['POST'])
 def make_choice():
