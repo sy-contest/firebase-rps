@@ -160,7 +160,8 @@ function listenForGameUpdates() {
             }
             document.getElementById('result').textContent = result;
             disableChoiceButtons();
-            document.getElementById('waiting-message').style.display = 'none'; // Hide waiting message
+            document.getElementById('waiting-message').style.display = 'none'; // Hide waiting message completely
+            document.getElementById('choices').style.display = 'none'; // Optionally hide choices
         } else if (game.status === 'playing') {
             const playerChoice = game[`${currentPlayer}_choice`];
             if (!playerChoice) {
