@@ -1,4 +1,5 @@
 import os
+import json
 from flask import Flask, render_template, request, jsonify
 import firebase_admin
 from firebase_admin import credentials, db
@@ -6,10 +7,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
 # Initialize Firebase
-cred = credentials.Certificate("firebase-key.json")
+firebase_service_account = json.loads(os.getenv('FIREBASE_SERVICE_ACCOUNT'))
+cred = credentials.Certificate(firebase_service_account)
 firebase_admin.initialize_app(cred, {
     'databaseURL': os.getenv('FIREBASE_DATABASE_URL')
 })
@@ -93,5 +95,4 @@ def determine_winner(choice1, choice2):
     else:
         return 'player2'
 
-if __name__ == '__main__':
-    app.run(debug=True)
+app = app
