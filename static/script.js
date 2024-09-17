@@ -98,8 +98,8 @@ function makeChoice(choice) {
     })
     .then(response => {
         if (!response.ok) {
-            return response.text().then(text => {
-                throw new Error(`Network response was not ok: ${response.status} ${response.statusText}\n${text}`);
+            return response.json().then(err => {
+                throw new Error(err.message || 'An error occurred while making a choice');
             });
         }
         return response.json();

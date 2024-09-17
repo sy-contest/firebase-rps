@@ -67,12 +67,21 @@ def join_game():
 def make_choice():
     try:
         app.logger.info(f"Received make_choice request: {request.json}")
-        game_id = request.json['game_id']
-        player = request.json['player']
-        choice = request.json['choice']
+        game_id = request.json.get('game_id')
+        player = request.json.get('player')
+        choice = request.json.get('choice')
+        
+        if not all([game_id, player, choice]):
+            missing = [k for k, v in {'game_id': game_id, 'player': player, 'choice': choice}.items() if not v]
+            raise ValueError(f"Missing required fields: {', '.join(missing)}")
         
         app.logger.info(f"Updating game {game_id} for {player} with choice {choice}")
         game_ref = db.reference(f'games/{game_id}')
+        game = game_ref.get()
+        
+        if not game:
+            raise ValueError(f"Game with ID {game_id} not found")
+        
         game_ref.child(f'{player}_choice').set(choice)
         
         app.logger.info(f"Fetching updated game data")
@@ -103,6 +112,9 @@ def make_choice():
                 })
         
         return jsonify({'success': True})
+    except ValueError as ve:
+        app.logger.error(f"ValueError in make_choice: {str(ve)}", exc_info=True)
+        return jsonify({'success': False, 'message': str(ve)}), 400
     except Exception as e:
         app.logger.error(f"Error in make_choice: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'message': str(e)}), 500
