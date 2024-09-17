@@ -56,14 +56,57 @@ def login():
 
 @app.route('/make_choice', methods=['POST'])
 def make_choice():
-    if 'username' not in session or 'game_id' not in session:
-        return jsonify({'success': False, 'message': 'Not logged in'}), 401
+    try:
+        if 'username' not in session or 'game_id' not in session:
+            return jsonify({'success': False, 'message': 'Not logged in'}), 401
 
-    choice = request.json.get('choice')
-    game_id = session['game_id']
-    player = session['player']
+        choice = request.json.get('choice')
+        game_id = session['game_id']
+        player = session['player']
 
-    # ... (rest of the make_choice logic)
+        if not choice:
+            return jsonify({'success': False, 'message': 'No choice provided'}), 400
+
+        game_ref = db.reference(f'games/{game_id}')
+        game = game_ref.get()
+
+        if not game:
+            return jsonify({'success': False, 'message': 'Game not found'}), 404
+
+        if game['status'] != 'playing':
+            return jsonify({'success': False, 'message': 'Game is not in playing state'}), 400
+
+        # Update the player's choice
+        game_ref.child(f'{player}_choice').set(choice)
+
+        # Check if both players have made their choices
+        if game['player1_choice'] and game['player2_choice']:
+            # Determine the winner
+            winner = determine_winner(game['player1_choice'], game['player2_choice'])
+            
+            # Update game status and winner
+            game_ref.update({
+                'status': 'finished',
+                'winner': winner
+            })
+
+            return jsonify({'success': True, 'message': 'Game finished', 'winner': winner})
+        else:
+            return jsonify({'success': True, 'message': 'Choice recorded'})
+
+    except Exception as e:
+        app.logger.error(f"Error in make_choice: {str(e)}")
+        return jsonify({'success': False, 'message': 'An error occurred'}), 500
+
+def determine_winner(choice1, choice2):
+    if choice1 == choice2:
+        return 'tie'
+    elif (choice1 == 'rock' and choice2 == 'scissors') or \
+         (choice1 == 'scissors' and choice2 == 'paper') or \
+         (choice1 == 'paper' and choice2 == 'rock'):
+        return 'player1'
+    else:
+        return 'player2'
 
 @app.route('/')
 def index():

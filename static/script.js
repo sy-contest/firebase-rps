@@ -83,7 +83,7 @@ function makeChoice(choice) {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ game_id: currentGameId, player: currentPlayer, choice: choice }),
+        body: JSON.stringify({ choice: choice }),
     })
     .then(response => {
         if (!response.ok) {
@@ -97,6 +97,9 @@ function makeChoice(choice) {
         if (data.success) {
             console.log('Choice made successfully');
             disableChoiceButtons();
+            if (data.winner) {
+                console.log(`Game finished. Winner: ${data.winner}`);
+            }
         } else {
             console.error('Error making choice:', data.message);
             alert('Error making choice: ' + data.message);
