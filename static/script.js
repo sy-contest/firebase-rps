@@ -1,12 +1,12 @@
 // Initialize Firebase (replace with your own config)
 const firebaseConfig = {
-    apiKey: "AIzaSyBXnt1GwSFE1MCZIguzDCJt8pJ2aqW4JQY",
-    authDomain: "rps-con.firebaseapp.com",
-    projectId: "rps-con",
-    storageBucket: "rps-con.appspot.com",
-    messagingSenderId: "213355497362",
-    appId: "1:213355497362:web:2c0bd14ff9b4141577e34b"
-  };
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID
+};
 
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
