@@ -134,7 +134,13 @@ function listenForGameUpdates() {
         document.getElementById('player1-name').textContent = `${game.player1} (${game.player1_score || 0})`;
         document.getElementById('player2-name').textContent = game.player2 ? `${game.player2} (${game.player2_score || 0})` : 'Waiting for player...';
 
-        if (game.status === 'finished') {
+        if (game.status === 'waiting') {
+            document.getElementById('result').textContent = 'Waiting for other player to join...';
+            disableChoiceButtons();
+        } else if (game.status === 'playing') {
+            document.getElementById('result').textContent = 'Game in progress. Make your choice!';
+            enableChoiceButtons();
+        } else if (game.status === 'finished') {
             let result = '';
             if (game.winner === 'player1') {
                 result = currentPlayer === 'player1' ? 'You win the game!' : 'You lose the game!';
@@ -145,15 +151,12 @@ function listenForGameUpdates() {
             }
             document.getElementById('result').textContent = result;
             disableChoiceButtons();
-            document.getElementById('choices').style.display = 'none'; // Optionally hide choices
-        } else if (game.status === 'playing') {
-            const playerChoice = game[`${currentPlayer}_choice`];
-            if (!playerChoice) {
-                enableChoiceButtons();
-            } else {
-                disableChoiceButtons();
-            }
-            document.getElementById('result').textContent = '';
+        }
+
+        const playerChoice = game[`${currentPlayer}_choice`];
+        if (playerChoice) {
+            disableChoiceButtons();
+            document.getElementById('result').textContent = `You chose ${playerChoice}. Waiting for other player...`;
         }
     });
 }

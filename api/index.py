@@ -52,6 +52,10 @@ def login():
     session['game_id'] = game_id
     session['player'] = player
 
+    # Set game status to 'playing' if both players have joined
+    if game['player1'] and game['player2']:
+        game_ref.update({'status': 'playing'})
+
     return jsonify({'success': True, 'player': player})
 
 @app.route('/make_choice', methods=['POST'])
@@ -74,15 +78,20 @@ def make_choice():
             return jsonify({'success': False, 'message': 'Game not found'}), 404
 
         if game['status'] != 'playing':
-            return jsonify({'success': False, 'message': 'Game is not in playing state'}), 400
+            # If the game is not in playing state, check if both players are present
+            if game['player1'] and game['player2']:
+                game_ref.update({'status': 'playing'})
+            else:
+                return jsonify({'success': False, 'message': 'Waiting for other player to join'}), 400
 
         # Update the player's choice
         game_ref.child(f'{player}_choice').set(choice)
 
         # Check if both players have made their choices
-        if game['player1_choice'] and game['player2_choice']:
+        updated_game = game_ref.get()
+        if updated_game['player1_choice'] and updated_game['player2_choice']:
             # Determine the winner
-            winner = determine_winner(game['player1_choice'], game['player2_choice'])
+            winner = determine_winner(updated_game['player1_choice'], updated_game['player2_choice'])
             
             # Update game status and winner
             game_ref.update({
