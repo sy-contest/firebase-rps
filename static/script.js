@@ -1,7 +1,6 @@
 let database;
 let currentGameId = null;
 let currentPlayer = null;
-let playerScores = { player1: 0, player2: 0 };
 
 // Fetch Firebase config from server
 fetch('/config')
@@ -14,76 +13,45 @@ fetch('/config')
     .catch(error => console.error('Error loading Firebase config:', error));
 
 function initializeEventListeners() {
-    document.getElementById('create-game').addEventListener('click', createGame);
-    document.getElementById('join-game').addEventListener('click', joinGame);
+    document.getElementById('login-button').addEventListener('click', login);
 
     document.querySelectorAll('.choice').forEach(button => {
         button.addEventListener('click', () => confirmChoice(button.dataset.choice));
     });
 }
 
-function createGame() {
-    const playerName = document.getElementById('player-name').value;
-    if (!playerName) {
-        alert('Please enter your name');
-        return;
-    }
-
-    fetch('/create_game', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ player_name: playerName }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            currentGameId = data.game_id;
-            currentPlayer = 'player1';
-            document.getElementById('current-game-id').textContent = currentGameId;
-            document.getElementById('player1-name').textContent = playerName;
-            document.getElementById('game-setup').style.display = 'none';
-            document.getElementById('game-area').style.display = 'block';
-            listenForGameUpdates();
-        } else {
-            alert(data.message || 'Failed to create game');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while creating the game');
-    });
-}
-
-function joinGame() {
-    const playerName = document.getElementById('player-name').value;
+function login() {
+    const username = document.getElementById('username').value;
     const gameId = document.getElementById('game-id').value;
-    if (!playerName || !gameId) {
-        alert('Please enter your name and game ID');
+
+    if (!username || !gameId) {
+        alert('Please enter both username and game ID');
         return;
     }
 
-    fetch('/join_game', {
+    fetch('/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ player_name: playerName, game_id: gameId }),
+        body: JSON.stringify({ username, game_id: gameId }),
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             currentGameId = gameId;
-            currentPlayer = 'player2';
-            document.getElementById('current-game-id').textContent = currentGameId;
-            document.getElementById('player2-name').textContent = playerName;
-            document.getElementById('game-setup').style.display = 'none';
+            currentPlayer = data.player;
+            document.getElementById('login-form').style.display = 'none';
             document.getElementById('game-area').style.display = 'block';
+            document.getElementById('current-game-id').textContent = currentGameId;
             listenForGameUpdates();
         } else {
-            alert(data.message);
+            alert(data.message || 'Failed to login');
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while logging in');
     });
 }
 

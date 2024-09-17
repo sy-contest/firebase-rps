@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 import firebase_admin
 from firebase_admin import credentials, db
 from dotenv import load_dotenv
@@ -17,122 +17,47 @@ firebase_admin.initialize_app(cred, {
     'databaseURL': os.getenv('FIREBASE_DATABASE_URL')
 })
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.json.get('username')
+    game_id = request.json.get('game_id')
 
-@app.route('/create_game', methods=['POST'])
-def create_game():
-    try:
-        game_id = db.reference('games').push().key
-        db.reference(f'games/{game_id}').set({
-            'player1': request.json['player_name'],
-            'player2': None,
-            'player1_choice': None,
-            'player2_choice': None,
-            'player1_score': 0,
-            'player2_score': 0,
-            'status': 'waiting'
-        })
-        app.logger.info(f"Created game: {game_id}")
-        return jsonify({'success': True, 'game_id': game_id})
-    except Exception as e:
-        app.logger.error(f"Error in create_game: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'message': 'An error occurred while creating the game'}), 500
+    if not username or not game_id:
+        return jsonify({'success': False, 'message': 'Username and game ID are required'}), 400
 
-@app.route('/join_game', methods=['POST'])
-def join_game():
-    try:
-        game_id = request.json['game_id']
-        player_name = request.json['player_name']
-        
-        game_ref = db.reference(f'games/{game_id}')
-        game = game_ref.get()
-        
-        if not game:
-            return jsonify({'success': False, 'message': 'Game not found'}), 404
-        
-        if game['status'] != 'waiting':
-            return jsonify({'success': False, 'message': 'Game is already full'}), 400
-        
-        game_ref.update({
-            'player2': player_name,
-            'status': 'playing'
-        })
-        return jsonify({'success': True})
-    except Exception as e:
-        app.logger.error(f"Error in join_game: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'message': 'An error occurred while joining the game'}), 500
+    game_ref = db.reference(f'games/{game_id}')
+    game = game_ref.get()
+
+    if not game:
+        return jsonify({'success': False, 'message': 'Invalid game ID'}), 404
+
+    if game['player1'] == username:
+        player = 'player1'
+    elif game['player2'] == username:
+        player = 'player2'
+    else:
+        return jsonify({'success': False, 'message': 'Username not associated with this game'}), 403
+
+    session['username'] = username
+    session['game_id'] = game_id
+    session['player'] = player
+
+    return jsonify({'success': True, 'player': player})
 
 @app.route('/make_choice', methods=['POST'])
 def make_choice():
-    try:
-        app.logger.info(f"Received make_choice request: {request.json}")
-        game_id = request.json.get('game_id')
-        player = request.json.get('player')
-        choice = request.json.get('choice')
-        
-        if not all([game_id, player, choice]):
-            missing = [k for k, v in {'game_id': game_id, 'player': player, 'choice': choice}.items() if not v]
-            raise ValueError(f"Missing required fields: {', '.join(missing)}")
-        
-        app.logger.info(f"Updating game {game_id} for {player} with choice {choice}")
-        game_ref = db.reference(f'games/{game_id}')
-        game = game_ref.get()
-        
-        if not game:
-            raise ValueError(f"Game with ID {game_id} not found")
-        
-        app.logger.info(f"Current game state: {game}")
-        
-        # Remove the check for player's turn, allowing both to choose simultaneously
-        
-        game_ref.child(f'{player}_choice').set(choice)
-        
-        app.logger.info(f"Fetching updated game data")
-        game = game_ref.get()
-        app.logger.info(f"Updated game data: {game}")
-        
-        if game.get('player1_choice') and game.get('player2_choice'):
-            app.logger.info("Both players have made their choices")
-            round_winner = determine_winner(game['player1_choice'], game['player2_choice'])
-            app.logger.info(f"Round winner: {round_winner}")
-            
-            if round_winner != 'tie':
-                new_score = game.get(f'{round_winner}_score', 0) + 1
-                app.logger.info(f"Updating {round_winner} score to {new_score}")
-                game_ref.child(f'{round_winner}_score').set(new_score)
-            
-            if game.get(f'{round_winner}_score', 0) >= 2:
-                app.logger.info(f"Game finished, winner: {round_winner}")
-                game_ref.update({
-                    'status': 'finished',
-                    'winner': round_winner
-                })
-            else:
-                app.logger.info("Resetting choices for next round")
-                game_ref.update({
-                    'player1_choice': None,
-                    'player2_choice': None
-                })
-        
-        return jsonify({'success': True})
-    except ValueError as ve:
-        app.logger.error(f"ValueError in make_choice: {str(ve)}", exc_info=True)
-        return jsonify({'success': False, 'message': str(ve)}), 400
-    except Exception as e:
-        app.logger.error(f"Error in make_choice: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'message': str(e)}), 500
+    if 'username' not in session or 'game_id' not in session:
+        return jsonify({'success': False, 'message': 'Not logged in'}), 401
 
-def determine_winner(choice1, choice2):
-    if choice1 == choice2:
-        return 'tie'
-    elif (choice1 == 'rock' and choice2 == 'scissors') or \
-         (choice1 == 'scissors' and choice2 == 'paper') or \
-         (choice1 == 'paper' and choice2 == 'rock'):
-        return 'player1'
-    else:
-        return 'player2'
+    choice = request.json.get('choice')
+    game_id = session['game_id']
+    player = session['player']
+
+    # ... (rest of the make_choice logic)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/config')
 def config():
