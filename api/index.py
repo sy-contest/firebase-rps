@@ -82,6 +82,12 @@ def make_choice():
         if not game:
             raise ValueError(f"Game with ID {game_id} not found")
         
+        # Check if it's the player's turn
+        if player == 'player1' and game['player1_choice'] is not None:
+            raise ValueError("Player 1 has already made a choice")
+        if player == 'player2' and game['player2_choice'] is not None:
+            raise ValueError("Player 2 has already made a choice")
+        
         game_ref.child(f'{player}_choice').set(choice)
         
         app.logger.info(f"Fetching updated game data")
