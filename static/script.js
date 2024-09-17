@@ -114,7 +114,6 @@ function makeChoice(choice) {
         if (data.success) {
             console.log('Choice made successfully');
             disableChoiceButtons();
-            // Removed waiting message handling
         } else {
             console.error('Error making choice:', data.message);
             alert('Error making choice: ' + data.message);
@@ -160,17 +159,13 @@ function listenForGameUpdates() {
             }
             document.getElementById('result').textContent = result;
             disableChoiceButtons();
-            document.getElementById('waiting-message').style.display = 'none'; // Ensure waiting message is hidden
             document.getElementById('choices').style.display = 'none'; // Optionally hide choices
         } else if (game.status === 'playing') {
             const playerChoice = game[`${currentPlayer}_choice`];
             if (!playerChoice) {
                 enableChoiceButtons();
-                document.getElementById('waiting-message').style.display = 'none'; // Hide waiting message if no choice
             } else {
                 disableChoiceButtons();
-                // Show waiting message only if the game is still ongoing
-                document.getElementById('waiting-message').style.display = (game.player1_score < 3 && game.player2_score < 3) ? 'block' : 'none';
             }
             document.getElementById('result').textContent = '';
         }
