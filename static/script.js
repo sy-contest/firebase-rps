@@ -114,7 +114,7 @@ function makeChoice(choice) {
         if (data.success) {
             console.log('Choice made successfully');
             disableChoiceButtons();
-            document.getElementById('waiting-message').style.display = 'none'; // Hide waiting message after making a choice
+            // Removed waiting message handling
         } else {
             console.error('Error making choice:', data.message);
             alert('Error making choice: ' + data.message);
