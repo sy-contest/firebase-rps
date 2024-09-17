@@ -169,7 +169,7 @@ function listenForGameUpdates() {
                 document.getElementById('waiting-message').style.display = 'none'; // Hide waiting message if no choice
             } else {
                 disableChoiceButtons();
-                document.getElementById('waiting-message').style.display = 'block';
+                document.getElementById('waiting-message').style.display = 'block'; // Show waiting message if choice made
             }
             document.getElementById('result').textContent = '';
         }
