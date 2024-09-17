@@ -22,11 +22,15 @@ def login():
     username = request.json.get('username')
     game_id = request.json.get('game_id')
 
+    print(f"Login attempt: username={username}, game_id={game_id}")  # Add this line
+
     if not username or not game_id:
         return jsonify({'success': False, 'message': 'Username and game ID are required'}), 400
 
     game_ref = db.reference(f'games/{game_id}')
     game = game_ref.get()
+
+    print(f"Game data: {game}")  # Add this line
 
     if not game:
         return jsonify({'success': False, 'message': 'Invalid game ID'}), 404
@@ -36,6 +40,7 @@ def login():
     elif game['player2'] == username:
         player = 'player2'
     else:
+        print(f"Username {username} not found in game {game_id}")  # Add this line
         return jsonify({'success': False, 'message': 'Username not associated with this game'}), 403
 
     session['username'] = username

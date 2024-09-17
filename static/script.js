@@ -36,7 +36,14 @@ function login() {
         },
         body: JSON.stringify({ username, game_id: gameId }),
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.message || `HTTP error! status: ${response.status}`);
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             currentGameId = gameId;
@@ -51,7 +58,7 @@ function login() {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while logging in');
+        alert('An error occurred while logging in: ' + error.message);
     });
 }
 
