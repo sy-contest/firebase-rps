@@ -18,7 +18,7 @@ function initializeEventListeners() {
     document.getElementById('join-game').addEventListener('click', joinGame);
 
     document.querySelectorAll('.choice').forEach(button => {
-        button.addEventListener('click', () => makeChoice(button.dataset.choice));
+        button.addEventListener('click', () => confirmChoice(button.dataset.choice));
     });
 }
 
@@ -87,6 +87,12 @@ function joinGame() {
     });
 }
 
+function confirmChoice(choice) {
+    if (confirm(`Are you sure you want to choose ${choice}?`)) {
+        makeChoice(choice);
+    }
+}
+
 function makeChoice(choice) {
     console.log(`Making choice: ${choice}`);
     fetch('/make_choice', {
@@ -107,9 +113,8 @@ function makeChoice(choice) {
     .then(data => {
         if (data.success) {
             console.log('Choice made successfully');
-            document.querySelectorAll('.choice').forEach(button => {
-                button.disabled = true;
-            });
+            disableChoiceButtons();
+            document.getElementById('waiting-message').style.display = 'block';
         } else {
             console.error('Error making choice:', data.message);
             alert('Error making choice: ' + data.message);
@@ -118,6 +123,18 @@ function makeChoice(choice) {
     .catch(error => {
         console.error('Error:', error);
         alert('An error occurred while making a choice: ' + error.message);
+    });
+}
+
+function disableChoiceButtons() {
+    document.querySelectorAll('.choice').forEach(button => {
+        button.disabled = true;
+    });
+}
+
+function enableChoiceButtons() {
+    document.querySelectorAll('.choice').forEach(button => {
+        button.disabled = false;
     });
 }
 
@@ -142,13 +159,17 @@ function listenForGameUpdates() {
                 result = 'The game ended in a tie!';
             }
             document.getElementById('result').textContent = result;
-            document.querySelectorAll('.choice').forEach(button => {
-                button.disabled = true;
-            });
+            disableChoiceButtons();
+            document.getElementById('waiting-message').style.display = 'none';
         } else if (game.status === 'playing') {
-            document.querySelectorAll('.choice').forEach(button => {
-                button.disabled = false;
-            });
+            const playerChoice = game[`${currentPlayer}_choice`];
+            if (!playerChoice) {
+                enableChoiceButtons();
+                document.getElementById('waiting-message').style.display = 'none';
+            } else {
+                disableChoiceButtons();
+                document.getElementById('waiting-message').style.display = 'block';
+            }
             document.getElementById('result').textContent = '';
         }
     });
