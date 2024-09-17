@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, jsonify
 import firebase_admin
 from firebase_admin import credentials, db
 from dotenv import load_dotenv
+from config import get_firebase_config
 
 load_dotenv()
 
@@ -95,4 +96,9 @@ def determine_winner(choice1, choice2):
     else:
         return 'player2'
 
-app = app
+@app.route('/config')
+def config():
+    return get_firebase_config()
+
+if __name__ == '__main__':
+    app.run(debug=True)
