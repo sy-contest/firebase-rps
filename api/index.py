@@ -11,10 +11,7 @@ load_dotenv()
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
 # Initialize Firebase
-firebase_key_path = os.path.join(os.path.dirname(__file__), '..', 'firebase-key.json')
-with open(firebase_key_path, 'r') as f:
-    firebase_service_account = json.load(f)
-
+firebase_service_account = json.loads(os.getenv('FIREBASE_SERVICE_ACCOUNT'))
 cred = credentials.Certificate(firebase_service_account)
 firebase_admin.initialize_app(cred, {
     'databaseURL': os.getenv('FIREBASE_DATABASE_URL')
