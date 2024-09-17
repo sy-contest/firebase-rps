@@ -6,9 +6,14 @@ from firebase_admin import credentials, db
 from dotenv import load_dotenv
 from .config import get_firebase_config  # Change this line
 
+# Load environment variables
 load_dotenv()
 
+# Create Flask app
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
+
+# Set secret key
+app.secret_key = os.getenv('FLASK_SECRET_KEY')  # Add this line
 
 # Initialize Firebase
 firebase_service_account = json.loads(os.getenv('FIREBASE_SERVICE_ACCOUNT'))
@@ -66,7 +71,11 @@ def index():
 
 @app.route('/config')
 def config():
-    return get_firebase_config()
+    try:
+        return get_firebase_config()
+    except Exception as e:
+        app.logger.error(f"Error in config: {str(e)}")
+        return jsonify({'error': 'Failed to get Firebase config'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

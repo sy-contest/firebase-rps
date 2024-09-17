@@ -4,13 +4,21 @@ let currentPlayer = null;
 
 // Fetch Firebase config from server
 fetch('/config')
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(firebaseConfig => {
         firebase.initializeApp(firebaseConfig);
         database = firebase.database();
         initializeEventListeners();
     })
-    .catch(error => console.error('Error loading Firebase config:', error));
+    .catch(error => {
+        console.error('Error loading Firebase config:', error);
+        alert('Failed to load Firebase configuration. Please try again later.');
+    });
 
 function initializeEventListeners() {
     document.getElementById('login-button').addEventListener('click', login);
