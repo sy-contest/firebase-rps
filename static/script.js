@@ -165,7 +165,7 @@ function listenForGameUpdates() {
             const playerChoice = game[`${currentPlayer}_choice`];
             if (!playerChoice) {
                 enableChoiceButtons();
-                document.getElementById('waiting-message').style.display = 'none';
+                document.getElementById('waiting-message').style.display = 'none'; // Hide waiting message if no choice
             } else {
                 disableChoiceButtons();
                 document.getElementById('waiting-message').style.display = 'block';
