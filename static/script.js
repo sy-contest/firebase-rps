@@ -96,9 +96,8 @@ function makeChoice(choice) {
     .then(data => {
         if (data.success) {
             console.log('Choice made successfully');
-            disableChoiceButtons();
-            if (data.winner) {
-                console.log(`Game finished. Winner: ${data.winner}`);
+            if (data.round_winner) {
+                console.log(`Round finished. Winner: ${data.round_winner}`);
             }
         } else {
             console.error('Error making choice:', data.message);
@@ -138,8 +137,13 @@ function listenForGameUpdates() {
             document.getElementById('result').textContent = 'Waiting for other player to join...';
             disableChoiceButtons();
         } else if (game.status === 'playing') {
-            document.getElementById('result').textContent = 'Game in progress. Make your choice!';
-            enableChoiceButtons();
+            if (game[`${currentPlayer}_choice`]) {
+                document.getElementById('result').textContent = `You chose ${game[`${currentPlayer}_choice`]}. Waiting for other player...`;
+                disableChoiceButtons();
+            } else {
+                document.getElementById('result').textContent = 'Make your choice!';
+                enableChoiceButtons();
+            }
         } else if (game.status === 'finished') {
             let result = '';
             if (game.winner === 'player1') {
@@ -151,12 +155,6 @@ function listenForGameUpdates() {
             }
             document.getElementById('result').textContent = result;
             disableChoiceButtons();
-        }
-
-        const playerChoice = game[`${currentPlayer}_choice`];
-        if (playerChoice) {
-            disableChoiceButtons();
-            document.getElementById('result').textContent = `You chose ${playerChoice}. Waiting for other player...`;
         }
     });
 }
