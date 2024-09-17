@@ -85,11 +85,7 @@ def make_choice():
         
         app.logger.info(f"Current game state: {game}")
         
-        # Check if it's the player's turn
-        if player == 'player1' and game.get('player1_choice') is not None:
-            raise ValueError("Player 1 has already made a choice")
-        if player == 'player2' and game.get('player2_choice') is not None:
-            raise ValueError("Player 2 has already made a choice")
+        # Remove the check for player's turn, allowing both to choose simultaneously
         
         game_ref.child(f'{player}_choice').set(choice)
         
