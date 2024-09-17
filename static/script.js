@@ -88,6 +88,7 @@ function joinGame() {
 }
 
 function makeChoice(choice) {
+    console.log(`Making choice: ${choice}`);
     fetch('/make_choice', {
         method: 'POST',
         headers: {
@@ -97,12 +98,15 @@ function makeChoice(choice) {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            return response.text().then(text => {
+                throw new Error(`Network response was not ok: ${response.status} ${response.statusText}\n${text}`);
+            });
         }
         return response.json();
     })
     .then(data => {
         if (data.success) {
+            console.log('Choice made successfully');
             document.querySelectorAll('.choice').forEach(button => {
                 button.disabled = true;
             });
@@ -113,7 +117,7 @@ function makeChoice(choice) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while making a choice');
+        alert('An error occurred while making a choice: ' + error.message);
     });
 }
 

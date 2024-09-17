@@ -66,25 +66,37 @@ def join_game():
 @app.route('/make_choice', methods=['POST'])
 def make_choice():
     try:
+        app.logger.info(f"Received make_choice request: {request.json}")
         game_id = request.json['game_id']
         player = request.json['player']
         choice = request.json['choice']
         
+        app.logger.info(f"Updating game {game_id} for {player} with choice {choice}")
         game_ref = db.reference(f'games/{game_id}')
         game_ref.child(f'{player}_choice').set(choice)
         
+        app.logger.info(f"Fetching updated game data")
         game = game_ref.get()
+        app.logger.info(f"Game data: {game}")
+        
         if game['player1_choice'] and game['player2_choice']:
+            app.logger.info("Both players have made their choices")
             round_winner = determine_winner(game['player1_choice'], game['player2_choice'])
+            app.logger.info(f"Round winner: {round_winner}")
+            
             if round_winner != 'tie':
-                game_ref.child(f'{round_winner}_score').set(game[f'{round_winner}_score'] + 1)
+                new_score = game[f'{round_winner}_score'] + 1
+                app.logger.info(f"Updating {round_winner} score to {new_score}")
+                game_ref.child(f'{round_winner}_score').set(new_score)
             
             if game[f'{round_winner}_score'] >= 3:
+                app.logger.info(f"Game finished, winner: {round_winner}")
                 game_ref.update({
                     'status': 'finished',
                     'winner': round_winner
                 })
             else:
+                app.logger.info("Resetting choices for next round")
                 game_ref.update({
                     'player1_choice': None,
                     'player2_choice': None
@@ -93,7 +105,7 @@ def make_choice():
         return jsonify({'success': True})
     except Exception as e:
         app.logger.error(f"Error in make_choice: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'message': 'An error occurred while making a choice'}), 500
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 def determine_winner(choice1, choice2):
     if choice1 == choice2:
