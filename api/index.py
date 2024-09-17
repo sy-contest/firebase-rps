@@ -30,6 +30,8 @@ def create_game():
             'player2': None,
             'player1_choice': None,
             'player2_choice': None,
+            'player1_score': 0,
+            'player2_score': 0,
             'status': 'waiting'
         })
         return jsonify({'success': True, 'game_id': game_id})
@@ -78,11 +80,20 @@ def make_choice():
     
     game = game_ref.get()
     if game['player1_choice'] and game['player2_choice']:
-        winner = determine_winner(game['player1_choice'], game['player2_choice'])
-        game_ref.update({
-            'status': 'finished',
-            'winner': winner
-        })
+        round_winner = determine_winner(game['player1_choice'], game['player2_choice'])
+        if round_winner != 'tie':
+            game_ref.child(f'{round_winner}_score').set(game[f'{round_winner}_score'] + 1)
+        
+        if game[f'{round_winner}_score'] >= 3:
+            game_ref.update({
+                'status': 'finished',
+                'winner': round_winner
+            })
+        else:
+            game_ref.update({
+                'player1_choice': None,
+                'player2_choice': None
+            })
     
     return jsonify({'success': True})
 

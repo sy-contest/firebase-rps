@@ -1,6 +1,7 @@
 let database;
 let currentGameId = null;
 let currentPlayer = null;
+let playerScores = { player1: 0, player2: 0 };
 
 // Fetch Firebase config from server
 fetch('/config')
@@ -112,22 +113,25 @@ function listenForGameUpdates() {
     const gameRef = database.ref(`games/${currentGameId}`);
     gameRef.on('value', (snapshot) => {
         const game = snapshot.val();
-        document.getElementById('player1-name').textContent = game.player1;
-        document.getElementById('player2-name').textContent = game.player2 || 'Waiting for player...';
+        document.getElementById('player1-name').textContent = `${game.player1} (${game.player1_score || 0})`;
+        document.getElementById('player2-name').textContent = game.player2 ? `${game.player2} (${game.player2_score || 0})` : 'Waiting for player...';
 
         if (game.status === 'finished') {
             let result = '';
-            if (game.winner === 'tie') {
-                result = "It's a tie!";
-            } else if (game.winner === currentPlayer) {
-                result = 'You win!';
-            } else {
-                result = 'You lose!';
+            if (game.winner === 'player1') {
+                result = game.player1 === currentPlayer ? 'You win the game!' : 'You lose the game!';
+            } else if (game.winner === 'player2') {
+                result = game.player2 === currentPlayer ? 'You win the game!' : 'You lose the game!';
             }
             document.getElementById('result').textContent = result;
             document.querySelectorAll('.choice').forEach(button => {
                 button.disabled = true;
             });
+        } else if (game.status === 'playing') {
+            document.querySelectorAll('.choice').forEach(button => {
+                button.disabled = false;
+            });
+            document.getElementById('result').textContent = '';
         }
     });
 }
